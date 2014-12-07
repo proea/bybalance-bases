@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Отладчик баз для Байбаланс</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Отладчик баз для Байбаланс</h1>
+        <div class="row">
+            <div class="col-xs-12">
+                <label for="idServices">Select sample</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-8 col-sm-6">
+                <select class="form-control" id="idServices">
+                    <option value="1">МТС</option>
+                    <option value="2">Деловая сеть</option>
+                </select>
+            </div>
+            <div cass="col-xs-4">
+                <button type="button" class="btn btn-default">Обработать</button>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-xs-12">
+                <strong>Result</strong>
+                <div style="margin-bottom: 1em">
+                        <pre id="idResult"></pre>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <label for="idLoadedSample">Loaded sample</label>
+                <textarea class="form-control" rows="10" id="idLoadedSample"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <script src="../bases.js"></script>
+    <script>
+
+        var samplesFiles = {
+            id_1: 'mts.html',
+            id_2: 'bn.html'
+        };
+
+        function getSampleFile(type)
+        {
+            log('getServicesFile type:' + type);
+            var prop = 'id_'+type;
+            var file = samplesFiles[prop] ? samplesFiles[prop] : null;
+            if (!file) return null;
+            return 'samples/' + file;
+        }
+
+        $('button').click(function()
+        {
+            var type = $('#idServices').val();
+            var file = getSampleFile(type);
+            if (!file) {
+                log('No sample file found');
+                $('#idResult').text('No sample file found');
+                return;
+            }
+
+            $.get(file).done(function(content)
+            {
+                $('#idLoadedSample').val(content);
+                var result = extractData(type, content);
+                log(result);
+                $('#idResult').text(JSON.stringify(result, undefined, 4));
+            });
+
+        });
+
+
+    </script>
+
+</body>
+</html>
