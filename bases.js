@@ -24,7 +24,9 @@ var accounts = {
 
 var accountsFunctions = {
     id_1: 'extractMts',
-    id_2: 'extractBn'
+    id_2: 'extractBn',
+    id_3: 'extractVelcom',
+    id_4: 'extractLife'
 };
 
 function getExtractFunction(type)
@@ -67,7 +69,7 @@ function getIntegerNumber(str, separator)
 {
     separator = separator || '.';
 
-    str = str.replace(/руб./g, ''); //mts,bn
+    str = str.replace(/руб./g, ''); //mts,bn,velcom
 
     if (separator == '.')
     {
@@ -132,10 +134,102 @@ function extractBn(html)
     return r;
 }
 
+function extractVelcom(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('INFO_Error_caption') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var i, regexp, matches, balance;
+    var balanceMarkers = [
+        /баланс:<\/td><td class="INFO">([^<]+)/mi,
+        /"Начисления\s*абонента\*:<\/td><td class="INFO">([^<]+)/mi,
+        /<td[^>]*id="BALANCE"[^>]*><span>\s*([^<]+)/mi,
+        /<td[^>]*id="contractCharge"[^>]*><span>\s*([^<]+)/mi
+    ];
+
+    for (i=0; i<balanceMarkers.length; i++)
+    {
+        regexp = balanceMarkers[i];
+        matches = html.match(regexp);
+        log(regexp, matches);
+        if (matches && matches.length == 2)
+        {
+            balance = getIntegerNumber(matches[1]);
+            r.extracted = true;
+            r.balance = balance;
+            break;
+        }
+    }
+
+    if (r.extracted)
+    {
+        log('search for bonuses');
+        var bonusLine, bonuses = [];
+        var bonusesMarkers = [
+            /<td[^>]*id="DISCOUNT"[^>]*><span>\s*([^<]+)/mi,
+            /<td[^>]*id="TraficBalance"[^>]*><span>\s*([^<]+)/mi
+        ];
+
+        for (i=0; i<bonusesMarkers.length; i++)
+        {
+            regexp = bonusesMarkers[i];
+            matches = html.match(regexp);
+            log(regexp, matches);
+            if (matches && matches.length == 2)
+            {
+                bonusLine = String(matches[1]).trim();
+                if (bonusLine.length > 1) bonuses.push(bonusLine);
+            }
+        }
+
+        if (bonuses.length > 0) r.bonuses = bonuses.join(' ');
+    }
+
+    return r;
+}
+
+function extractLife(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('class="log-out"') == -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var i, regexp, matches, balance;
+    var balanceMarkers = [
+        /Основной баланс\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi,
+        /Основной счет\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi
+    ];
+
+    for (i=0; i<balanceMarkers.length; i++)
+    {
+        regexp = balanceMarkers[i];
+        matches = html.match(regexp);
+        log(regexp, matches);
+        if (matches && matches.length == 2)
+        {
+            balance = getIntegerNumber(matches[1]);
+            r.extracted = true;
+            r.balance = balance;
+            break;
+        }
+    }
+
+    return r;
+}
+
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.17'
+    version: '1411.3.19'
 };
 
 //end
