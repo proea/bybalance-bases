@@ -24,6 +24,8 @@
                     <option value="2">Деловая сеть</option>
                     <option value="3">Велком</option>
                     <option value="4">Лайф</option>
+                    <option value="5">TCM</option>
+                    <option value="6">Никс</option>
                 </select>
             </div>
             <div cass="col-xs-4">
@@ -57,7 +59,9 @@
             id_1: 'mts.html',
             id_2: 'bn.html',
             id_3: 'velcom_1.html',
-            id_4: 'life.html'
+            id_4: 'life.html',
+            id_5: 'tcm.txt',
+            id_6: 'niks.html'
         };
 
         function getSampleFile(type)
@@ -66,7 +70,7 @@
             var prop = 'id_'+type;
             var file = samplesFiles[prop] ? samplesFiles[prop] : null;
             if (!file) return null;
-            return 'samples/' + file;
+            return 'samples/' + file + '?rand=' + (Math.random());
         }
 
         $('button').click(function()

@@ -26,7 +26,9 @@ var accountsFunctions = {
     id_1: 'extractMts',
     id_2: 'extractBn',
     id_3: 'extractVelcom',
-    id_4: 'extractLife'
+    id_4: 'extractLife',
+    id_5: 'extractTcm',
+    id_6: 'extractNiks'
 };
 
 function getExtractFunction(type)
@@ -100,11 +102,9 @@ function extractMts(html)
     if (matches && matches.length == 2)
     {
         var balance = getIntegerNumber(matches[1], ',');
-        log('balance', balance);
         r.extracted = true;
         r.balance = balance;
     }
-    log(matches);
 
     return r;
 }
@@ -125,11 +125,9 @@ function extractBn(html)
     if (matches && matches.length == 2)
     {
         var balance = getIntegerNumber(matches[1], ',');
-        log('balance', balance);
         r.extracted = true;
         r.balance = balance;
     }
-    log('matches', matches);
 
     return r;
 }
@@ -226,10 +224,59 @@ function extractLife(html)
     return r;
 }
 
+function extractTcm(text)
+{
+    var r = prepareResult();
+
+    if (text == '') return r;
+
+    if (text.indexOf('ERROR') > -1 || text.indexOf('FORBIDDEN') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var arr = text.split(';');
+    if (arr.length < 5) return r;
+
+    r.extracted = true;
+    r.balance = getIntegerNumber(arr[2]);
+
+    var status = arr[4];
+    if (status == 0)
+    {
+        r.bonuses = "Аккаунт заблокирован";
+    }
+
+    return r;
+}
+
+function extractNiks(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('id="MessageLabel"') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var re = /Баланс:<\/td>\s*<td class="bgTableWhite2" width="50%" align="left">\s*<table cellpadding="0" cellspacing="0" border="0" width="100%">\s*<tr>\s*<td nowrap><font color=red><b>([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+    }
+
+    return r;
+}
+
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.19'
+    version: '1411.3.22'
 };
 
 //end
