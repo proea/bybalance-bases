@@ -327,6 +327,7 @@ function extractByfly(html)
     }
     else
     {
+        //multiple items on page
         re = /<\/strong>\s*<\/span>\s*<ul>([\s\S]+)<\/ul>\s*<\/li>\s*<\/ul>\s*<\/div>/mi;
         matches = html.match(re);
         log(matches);
