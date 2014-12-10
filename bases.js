@@ -1,5 +1,6 @@
 
 var log = console.log || function(){};
+var username = ''; //for byfly
 
 var accounts = {
     kAccountMts: 1,
@@ -28,7 +29,12 @@ var accountsFunctions = {
     id_3: 'extractVelcom',
     id_4: 'extractLife',
     id_5: 'extractTcm',
-    id_6: 'extractNiks'
+    id_6: 'extractNiks',
+    id_7: 'extractDamavik',
+    id_8: 'extractDamavik',
+    id_9: 'extractDamavik',
+    id_10: 'extractByfly',
+    id_13: 'extractDamavik'
 };
 
 function getExtractFunction(type)
@@ -62,6 +68,11 @@ function extractData(type, html)
         var r = prepareResult();
         r.notSupported = true;
         return r;
+    }
+
+    if (html == '')
+    {
+        return prepareResult();
     }
 
     return func(html);
@@ -273,10 +284,83 @@ function extractNiks(html)
     return r;
 }
 
+function extractDamavik(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('Введенные данные неверны. Проверьте и повторите попытку.') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var re = /Состояние счета<\/td>\s+<td>([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+    }
+
+    return r;
+}
+
+function extractByfly(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('name="oper_user"') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    //simple check, one contract item
+    var re = /Актуальный баланс:\s*<b>\s*([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+    }
+    else
+    {
+        re = /<\/strong>\s*<\/span>\s*<ul>([\s\S]+)<\/ul>\s*<\/li>\s*<\/ul>\s*<\/div>/mi;
+        matches = html.match(re);
+        log(matches);
+        if (matches && matches.length == 2)
+        {
+            var blockAll = matches[1];
+            var blocks = blockAll.split(/<\/li>\s*<li>/mi);
+            var block, i;
+            log(blockAll);
+            for (i=0; i<blocks.length; i++)
+            {
+                block = blocks[i];
+                log(block);
+                if (block.indexOf(username) == -1) continue;
+
+                re = /Баланс\s*([^)]+)/mi;
+                matches = html.match(re);
+                if (matches && matches.length == 2)
+                {
+                    var balance = getIntegerNumber(matches[1]);
+                    r.extracted = true;
+                    r.balance = balance;
+                    break;
+                }
+            }
+        }
+    }
+
+    return r;
+}
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.22'
+    version: '1411.3.26'
 };
 
 //end
