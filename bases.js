@@ -18,7 +18,7 @@ var accounts = {
     kAccountAtlantTelecom: 13,
     kAccountInfolan: 14,
     kAccountUnetBy: 15,
-    kAccountDiallog: 16,
+    kAccountDiallog: 16, //dead
     kAccountAnitex: 17,
     kAccountAdslBy: 18
 };
@@ -34,7 +34,10 @@ var accountsFunctions = {
     id_8: 'extractDamavik',
     id_9: 'extractDamavik',
     id_10: 'extractByfly',
-    id_13: 'extractDamavik'
+    id_11: 'extractNetberry',
+    id_12: 'extractCosmosTv',
+    id_13: 'extractDamavik',
+    id_14: 'extractInfolan'
 };
 
 function getExtractFunction(type)
@@ -359,9 +362,96 @@ function extractByfly(html)
     return r;
 }
 
+function extractNetberry(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('Ошибка при авторизации') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var re = /Остаток средств<\/th>\s*<td>([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+    }
+    else
+    {
+        re = /Исходящий остаток на конец месяца<\/th>\s*<td>([^<]+)/mi;
+        matches = html.match(re);
+        if (matches && matches.length == 2)
+        {
+            var balance = getIntegerNumber(matches[1]);
+            r.extracted = true;
+            r.balance = balance;
+        }
+        else
+        {
+            re = /Входящий остаток на начало месяца<\/th>\s*<td>([^<]+)/mi;
+            matches = html.match(re);
+            if (matches && matches.length == 2)
+            {
+                var balance = getIntegerNumber(matches[1]);
+                r.extracted = true;
+                r.balance = balance;
+            }
+        }
+    }
+
+    return r;
+}
+
+function extractCosmosTv(text)
+{
+    var r = prepareResult();
+
+    //TODO
+    //broken, need user with acc to update
+
+    return r;
+}
+
+function extractInfolan(text)
+{
+    var r = prepareResult();
+
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(text, 'text/xml');
+
+    if (doc.documentElement.nodeName == 'parsererror') return r;
+
+    var response = doc.getElementsByTagName('Response')[0];
+    var i, node;
+    log(response);
+    log('length', response.childNodes.length);
+    for (i=0; i<response.childNodes.length; i++)
+    {
+        node = response.childNodes[i];
+        log('node', node.nodeName);
+        if (node.nodeName == 'Main')
+        {
+            var nodeBalance = node.getElementsByTagName('Balance')[0];
+            log('nodeBalance', nodeBalance);
+            if (nodeBalance)
+            {
+                r.extracted = true;
+                log('balance', nodeBalance.textContent);
+                r.balance = getIntegerNumber(nodeBalance.textContent);
+            }
+        }
+    }
+
+    return r;
+}
+
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.26'
+    version: '1411.3.28'
 };
 
 //end
