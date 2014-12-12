@@ -1,5 +1,7 @@
 
-var log = console.log || function(){};
+var log = function(){};
+if ('console' in this && console.log) log = console.log;
+
 var username = ''; //for byfly
 
 var accounts = {
@@ -423,35 +425,105 @@ function extractInfolan(text)
     var parser = new DOMParser();
     var doc = parser.parseFromString(text, 'text/xml');
 
+    //incorrect xml
     if (doc.documentElement.nodeName == 'parsererror') return r;
 
-    var response = doc.getElementsByTagName('Response')[0];
-    var i, node;
-    log(response);
-    log('length', response.childNodes.length);
-    for (i=0; i<response.childNodes.length; i++)
+    //incorrect login or other server error
+    var nodeError = doc.getElementsByTagName('Error')[0];
+    if (nodeError) return r;
+
+    var nodeResponse = doc.getElementsByTagName('Response')[0];
+    var i, node, nodeBalance, nodeName, nodeExpiry;
+    var bonuses = [];
+    log(nodeResponse);
+    log('length', nodeResponse.childNodes.length);
+    for (i=0; i<nodeResponse.childNodes.length; i++)
     {
-        node = response.childNodes[i];
+        node = nodeResponse.childNodes[i];
         log('node', node.nodeName);
         if (node.nodeName == 'Main')
         {
-            var nodeBalance = node.getElementsByTagName('Balance')[0];
+            nodeBalance = node.getElementsByTagName('Balance')[0];
             log('nodeBalance', nodeBalance);
             if (nodeBalance)
             {
                 r.extracted = true;
                 log('balance', nodeBalance.textContent);
                 r.balance = getIntegerNumber(nodeBalance.textContent);
+
+                var nodeDL = node.getElementsByTagName('DaysLeft')[0];
+                if (nodeDL)
+                {
+                    var dl = parseInt(nodeDL.textContent);
+                    log('daysLeft', dl);
+                    bonuses.push('Осталось ' + dl + ' ' + getNumEnding(dl, ['день', 'дня', 'дней']));
+                }
+            }
+        }
+        else if (node.nodeName == 'Inet')
+        {
+            nodeName = node.getElementsByTagName('Name')[0];
+            nodeBalance = node.getElementsByTagName('Balance')[0];
+            if (nodeName && nodeBalance)
+            {
+                var line = nodeName.textContent + ' - ' + nodeBalance.textContent;
+
+                nodeExpiry = node.getElementsByTagName('Expiry')[0];
+                if (nodeExpiry)
+                {
+                    line += ' - ' + nodeExpiry.textContent;
+                }
+
+                bonuses.push(line);
             }
         }
     }
 
+
+    if (bonuses.length > 0) r.bonuses = bonuses.join('\n');
+    log('bonuses', bonuses);
+
     return r;
+}
+
+function getNumEnding(number, endings)
+{
+    var ending = '';
+
+    //(1, 4, 5)
+    number = Math.abs(number);
+    number = number % 100;
+
+    if (number >= 11 && number <= 19)
+    {
+        ending = endings[2];
+    }
+    else
+    {
+        var i = number % 10;
+        switch (i)
+        {
+            case 1:
+                ending = endings[0];
+                break;
+
+            case 2:
+            case 3:
+            case 4:
+                ending = endings[1];
+                break;
+
+            default:
+                ending = endings[2];
+        }
+    }
+
+    return ending;
 }
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.28'
+    version: '1411.3.35'
 };
 
 //end
