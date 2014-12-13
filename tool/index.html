@@ -34,6 +34,7 @@
                     <option value="12">Космос тв</option>
                     <option value="13">Атлант телеком</option>
                     <option value="14">Домашняя сеть</option>
+                    <option value="15">Unet.by</option>
                 </select>
             </div>
             <div cass="col-xs-5">
@@ -60,8 +61,12 @@
     <script src="js/jquery-2.1.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
 
-    <script src="../bases.js"></script>
     <script>
+        document.write('<scr'+'ipt type="text/javascript" src="../bases.js?rand=' + Math.random() + '"></'+'scr'+'ipt>');
+    </script>
+    <script>
+
+
 
         var samplesFiles = {
             id_1: 'mts.html',
@@ -77,7 +82,8 @@
             id_11: 'netberry.html',
             id_12: 'cosmostv.txt',
             id_13: 'at.telecom.html',
-            id_14: 'infolan.txt'
+            id_14: 'infolan.txt',
+            id_15: 'unetby.txt'
         };
 
         function getSampleFile(type)
@@ -86,7 +92,7 @@
             var prop = 'id_'+type;
             var file = samplesFiles[prop] ? samplesFiles[prop] : null;
             if (!file) return null;
-            return 'samples/' + file + '?rand=' + (Math.random());
+            return 'samples/' + file + '?rand=' + Math.random();
         }
 
         $('button').click(function()

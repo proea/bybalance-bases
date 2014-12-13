@@ -1,6 +1,6 @@
 
 var log = function(){};
-if ('console' in this && console.log) log = console.log;
+if ('window' in this && window.console && window.console.log) log = console.log;
 
 var username = ''; //for byfly
 
@@ -39,7 +39,8 @@ var accountsFunctions = {
     id_11: 'extractNetberry',
     id_12: 'extractCosmosTv',
     id_13: 'extractDamavik',
-    id_14: 'extractInfolan'
+    id_14: 'extractInfolan',
+    id_15: 'extractUnetBy'
 };
 
 function getExtractFunction(type)
@@ -321,6 +322,8 @@ function extractByfly(html)
         return r;
     }
 
+    log('username', username);
+
     //simple check, one contract item
     var re = /Актуальный баланс:\s*<b>\s*([^<]+)/mi;
     var matches = html.match(re);
@@ -479,12 +482,44 @@ function extractInfolan(text)
         }
     }
 
-
     if (bonuses.length > 0) r.bonuses = bonuses.join('\n');
     log('bonuses', bonuses);
 
     return r;
 }
+
+function extractUnetBy(text)
+{
+    var r = prepareResult();
+
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(text, 'text/xml');
+
+    //incorrect xml
+    if (doc.documentElement.nodeName == 'parsererror') return r;
+
+    var nodeTag = doc.getElementsByTagName('tag')[0];
+    if (!nodeTag) return r;
+
+    var deposit = nodeTag.getAttribute('deposit');
+    if (deposit)
+    {
+        r.extracted = true;
+        r.balance = getIntegerNumber(deposit);
+
+        var bonuses = [];
+        var c1 = nodeTag.getAttribute('count_internet');
+        if (c1) bonuses.push('Интернет трафик ' + c1 + 'Mb');
+
+        var c2 = nodeTag.getAttribute('count_unet');
+        if (c2) bonuses.push('Unet.by трафик ' + c2 + 'Mb');
+
+        if (bonuses.length > 0) r.bonuses = bonuses.join('\n');
+    }
+
+    return r;
+}
+
 
 function getNumEnding(number, endings)
 {
@@ -523,7 +558,7 @@ function getNumEnding(number, endings)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.35'
+    version: '1411.3.38'
 };
 
 //end
