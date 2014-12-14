@@ -2,6 +2,75 @@
 var log = function(){};
 if ('window' in this && window.console && window.console.log) log = console.log;
 
+
+function getIntegerNumber(str, separator)
+{
+    separator = separator || '.';
+    str = str.replace(/руб./g, '');
+
+    if (separator == '.')
+    {
+        str = str.replace(/[^0-9.\-]/g, '');
+    }
+    else
+    {
+        str = str.replace(/[^0-9,\-]/g, '');
+        str = str.replace(',', '.');
+    }
+
+    return parseInt(str);
+}
+
+function getDecimalNumber(str, separator)
+{
+    separator = separator || '.';
+    str = str.replace(/руб./g, '');
+
+    if (separator == '.')
+    {
+        str = str.replace(/[^0-9.\-]/g, '');
+    }
+    else
+    {
+        str = str.replace(/[^0-9,\-]/g, '');
+        str = str.replace(',', '.');
+    }
+
+    return parseFloat(str).toFixed(2);
+}
+
+function getNumEnding(number, endings)
+{
+    var ending = '';
+    //(1, 4, 5)
+    number = Math.abs(number);
+    number = number % 100;
+
+    if (number >= 11 && number <= 19)
+    {
+        ending = endings[2];
+    }
+    else
+    {
+        var i = number % 10;
+        switch (i)
+        {
+            case 1:
+                ending = endings[0];
+                break;
+            case 2:
+            case 3:
+            case 4:
+                ending = endings[1];
+                break;
+            default:
+                ending = endings[2];
+        }
+    }
+
+    return ending;
+}
+
 var username = ''; //for byfly
 
 var accounts = {
@@ -40,7 +109,9 @@ var accountsFunctions = {
     id_12: 'extractCosmosTv',
     id_13: 'extractDamavik',
     id_14: 'extractInfolan',
-    id_15: 'extractUnetBy'
+    id_15: 'extractUnetBy',
+    id_17: 'extractAnitex',
+    id_18: 'extractAdslBy'
 };
 
 function getExtractFunction(type)
@@ -84,24 +155,7 @@ function extractData(type, html)
     return func(html);
 }
 
-function getIntegerNumber(str, separator)
-{
-    separator = separator || '.';
 
-    str = str.replace(/руб./g, ''); //mts,bn,velcom
-
-    if (separator == '.')
-    {
-        str = str.replace(/[^0-9.\-]/g, '');
-    }
-    else
-    {
-        str = str.replace(/[^0-9,\-]/g, '');
-        str = str.replace(',', '.');
-    }
-
-    return parseInt(str);
-}
 
 function extractMts(html)
 {
@@ -121,6 +175,7 @@ function extractMts(html)
         var balance = getIntegerNumber(matches[1], ',');
         r.extracted = true;
         r.balance = balance;
+        //r.bonuses = 'Тест длинной строки мегабайт: 20000   сут';
     }
 
     return r;
@@ -520,45 +575,127 @@ function extractUnetBy(text)
     return r;
 }
 
-
-function getNumEnding(number, endings)
+function extractAnitex(html)
 {
-    var ending = '';
+    var r = prepareResult();
 
-    //(1, 4, 5)
-    number = Math.abs(number);
-    number = number % 100;
-
-    if (number >= 11 && number <= 19)
+    if (html.indexOf('Ошибка при авторизации') > -1)
     {
-        ending = endings[2];
+        r.incorrectLogin = true;
+        return r;
+    }
+
+    var userPackages=0, userMegabytes=0, userDays=0, userCredit=0, userBalance=0;
+
+    var re = /Неактивированных пакетов<\/td>\s*<td>([^<]+)<\/td>/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        userPackages = getIntegerNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    re = /Текущий пакет, осталось МегаБайт<\/td>\s*<td>([^<]+)<\/td>/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        userMegabytes = getDecimalNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    re = /Текущий пакет, осталось суток<\/td>\s*<td>([^<]+)<\/td>/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        userDays = getDecimalNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    re = /Кредит<\/td>\s*<td>([^<]+)<\/td>/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        userCredit = getIntegerNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    re = /Остаток<\/td>\s*<td>([^<]+)<\/td>/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        userBalance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    log('userPackages', userPackages);
+    log('userMegabytes', userMegabytes);
+    log('userDays', userDays);
+    log('userCredit', userCredit);
+    log('userBalance', userBalance);
+
+    if (!r.extracted) return r;
+
+    var bonuses = [];
+
+    if (0 == userBalance)
+    {
+        r.balance = userMegabytes;
+        bonuses.push('мегабайт: ' + userMegabytes + '  суток: ' + userDays);
+        bonuses.push('пакетов: 2342' + userPackages);
     }
     else
     {
-        var i = number % 10;
-        switch (i)
-        {
-            case 1:
-                ending = endings[0];
-                break;
-
-            case 2:
-            case 3:
-            case 4:
-                ending = endings[1];
-                break;
-
-            default:
-                ending = endings[2];
-        }
+        r.balance = userBalance;
+        bonuses.push('остаток: ' + userBalance + '  кредит: ' + userCredit);
     }
 
-    return ending;
+    if (bonuses.length > 0) r.bonuses = bonuses.join('\n');
+
+    return r;
 }
+
+
+function extractAdslBy(html)
+{
+    var r = prepareResult();
+
+    var re = /Осталось трафика на сумму<\/td>\s+<td[^>]+><b>([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        r.balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+    }
+
+    var bonuses = [];
+
+    //Включен
+    re = />Аккаунт<\/td>\s+<td[^>]+><b>([^<]+)/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var statusLine = String(matches[1]).trim();
+        if (statusLine.length > 1) bonuses.push(statusLine);
+    }
+
+    //осталось
+    re = /<td class='left'><\/td>\s+<td[^>]+>осталось\s+<b>([^<]+)<\/b><\/td>\s+<\/tr>\s+<tr class="sub last_pay">/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var leftLine = String(matches[1]).trim();
+        if (leftLine.length > 1) bonuses.push('осталось ' + leftLine);
+    }
+
+    if (bonuses.length > 0) r.bonuses = bonuses.join(', ');
+
+    return r;
+}
+
 
 var bb = {
     title: 'Базы приложения',
-    version: '1411.3.38'
+    version: '1411.3.46'
 };
 
 //end
