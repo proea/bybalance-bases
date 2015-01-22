@@ -641,7 +641,7 @@ function extractAnitex(html)
     {
         r.balance = userMegabytes;
         bonuses.push('мегабайт: ' + userMegabytes + '  суток: ' + userDays);
-        bonuses.push('пакетов: 2342' + userPackages);
+        bonuses.push('пакетов: ' + userPackages);
     }
     else
     {
@@ -695,7 +695,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1501.0'
+    version: '1501.1'
 };
 
 //end
