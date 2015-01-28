@@ -367,6 +367,44 @@ function extractDamavik(html)
     return r;
 }
 
+function safaryDOMParserFix()
+{
+    (function(DOMParser) {
+        "use strict";
+        var DOMParser_proto = DOMParser.prototype
+            , real_parseFromString = DOMParser_proto.parseFromString;
+
+        // Firefox/Opera/IE throw errors on unsupported types
+        try {
+            // WebKit returns null on unsupported types
+            if ((new DOMParser).parseFromString("", "text/html")) {
+                // text/html parsing is natively supported
+                return;
+            }
+        } catch (ex) {}
+
+        DOMParser_proto.parseFromString = function(markup, type) {
+            if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
+                var doc = document.implementation.createHTMLDocument("")
+                    , doc_elt = doc.documentElement
+                    , first_elt;
+
+                doc_elt.innerHTML = markup;
+                first_elt = doc_elt.firstElementChild;
+
+                if (doc_elt.childElementCount === 1
+                    && first_elt.localName.toLowerCase() === "html") {
+                    doc.replaceChild(first_elt, doc_elt);
+                }
+
+                return doc;
+            } else {
+                return real_parseFromString.apply(this, arguments);
+            }
+        };
+    }(DOMParser));
+}
+
 function extractByfly(html)
 {
     var r = prepareResult();
@@ -377,6 +415,7 @@ function extractByfly(html)
         return r;
     }
 
+    username = String(username).replace('@beltel.by', '');
     log('username', username);
 
     //simple check, one contract item
@@ -390,33 +429,103 @@ function extractByfly(html)
     }
     else
     {
-        //multiple items on page
-        re = /<\/strong>\s*<\/span>\s*<ul>([\s\S]+)<\/ul>\s*<\/li>\s*<\/ul>\s*<\/div>/mi;
-        matches = html.match(re);
-        log(matches);
-        if (matches && matches.length == 2)
-        {
-            var blockAll = matches[1];
-            var blocks = blockAll.split(/<\/li>\s*<li>/mi);
-            var block, i;
-            log(blockAll);
-            for (i=0; i<blocks.length; i++)
-            {
-                block = blocks[i];
-                log(block);
-                if (block.indexOf(username) == -1) continue;
+        var re = /Баланс\s*([^)]+)/mi;
 
-                re = /Баланс\s*([^)]+)/mi;
-                matches = html.match(re);
-                if (matches && matches.length == 2)
+        safaryDOMParserFix();
+
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+
+        //incorrect html
+        if (doc.documentElement.nodeName == 'parsererror') return r;
+
+        //log('doc', doc);
+        var nodeTree = doc.getElementById('tree');
+        if (!nodeTree) return r;
+        //log('nodeTree', nodeTree);
+
+        for (var i=0; i<nodeTree.childNodes.length; i++)
+        {
+            var nodeTreeChild = nodeTree.childNodes[i];
+            if (nodeTreeChild.nodeName.toUpperCase() == 'LI')
+            {
+                var nodeLi = nodeTreeChild;
+                //log('nodeLi', nodeLi.innerHTML);
+                for (var j=0; j<nodeLi.childNodes.length; j++)
                 {
-                    var balance = getIntegerNumber(matches[1]);
-                    r.extracted = true;
-                    r.balance = balance;
-                    break;
+                    var nodeLiChild = nodeLi.childNodes[j];
+                    if (nodeLiChild.nodeName.toUpperCase() == 'UL')
+                    {
+                        var nodeUl2 = nodeLiChild;
+                        //log('nodeUl2', nodeUl2.innerHTML);
+                        for (var k=0; k<nodeUl2.childNodes.length; k++)
+                        {
+                            var nodeUl2Child = nodeUl2.childNodes[k];
+                            if (nodeUl2Child.nodeName.toUpperCase() == 'LI')
+                            {
+                                var nodeLi2 = nodeUl2Child;
+                                //log('nodeLi2', nodeLi2.innerHTML);
+                                var block = nodeLi2.innerHTML;
+
+                                if (block.indexOf(username) == -1) continue;
+
+                                var matches = block.match(re);
+                                if (matches && matches.length == 2)
+                                {
+                                    var balance = getIntegerNumber(matches[1]);
+                                    r.extracted = true;
+                                    r.balance = balance;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    return r;
+}
+
+function NEW_extractByfly(html)
+{
+    var r = prepareResult();
+
+    if (html.indexOf('name="oper_user"') > -1)
+    {
+        r.incorrectLogin = true;
+        return r;
+    }
+    username = '1704008644101';
+    username = '176543138';
+    log('username', username);
+
+    //simple check, one contract item
+    var re = /Актуальный баланс:\s*<b>\s*([^<]+)/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+    }
+    else
+    {
+        var re = /Баланс\s*([^)]+)/mi;
+        //save me jquery
+        $('ul#tree > li > ul > li', html).each(function(idx, el)
+        {
+            var block = $(el).html();
+            if (block.indexOf(username) == -1) return;
+
+            var matches = block.match(re);
+            if (matches && matches.length == 2)
+            {
+                var balance = getIntegerNumber(matches[1]);
+                r.extracted = true;
+                r.balance = balance;
+            }
+        });
     }
 
     return r;
@@ -627,11 +736,13 @@ function extractAnitex(html)
         r.extracted = true;
     }
 
+    /*
     log('userPackages', userPackages);
     log('userMegabytes', userMegabytes);
     log('userDays', userDays);
     log('userCredit', userCredit);
     log('userBalance', userBalance);
+    */
 
     if (!r.extracted) return r;
 
@@ -692,10 +803,9 @@ function extractAdslBy(html)
     return r;
 }
 
-
 var bb = {
     title: 'Базы приложения',
-    version: '1501.1'
+    version: '1501.2'
 };
 
 //end
