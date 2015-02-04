@@ -1,7 +1,9 @@
 
-var log = function(){};
-if ('window' in this && window.console && window.console.log) log = console.log;
-
+function log()
+{
+    if ('bbLog' in this) bbLog.apply(this, arguments);
+    else if ('useRegularConsole' in this) console.log.apply(this, arguments);
+}
 
 function getIntegerNumber(str, separator)
 {
@@ -805,7 +807,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1501.2'
+    version: '1502.0'
 };
 
 //end
