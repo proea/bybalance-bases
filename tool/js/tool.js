@@ -1,91 +1,6 @@
 
-var services = [
-    {
-        id: 1,
-        name: 'МТС',
-        fields: ['username', 'password']
-    },
-    {
-        id: 2,
-        name: 'Деловая сеть',
-        fields: ['username', 'password']
-    },
-    {
-        id: 3,
-        name: 'Велком',
-        fields: ['username', 'password']
-    },
-    {
-        id: 4,
-        name: 'Лайф',
-        fields: ['username', 'password']
-    },
-    {
-        id: 5,
-        name: 'TCM',
-        fields: ['username', 'password']
-    },
-    {
-        id: 6,
-        name: 'Никс',
-        fields: ['username', 'password']
-    },
-    {
-        id: 7,
-        name: 'Дамавік',
-        fields: ['username', 'password']
-    },
-    {
-        id: 8,
-        name: 'Соло',
-        fields: ['username', 'password']
-    },
-    {
-        id: 9,
-        name: 'Телесеть',
-        fields: ['username', 'password']
-    },
-    {
-        id: 10,
-        name: 'Byfly',
-        fields: ['username', 'password']
-    },
-    {
-        id: 11,
-        name: 'NetBerry',
-        fields: ['username', 'password']
-    },
-    {
-        id: 12,
-        name: 'Космос тв',
-        fields: ['username', 'password']
-    },
-    {
-        id: 13,
-        name: 'Атлант телеком',
-        fields: ['username', 'password']
-    },
-    {
-        id: 14,
-        name: 'Домашняя сеть',
-        fields: ['username', 'password']
-    },
-    {
-        id: 15,
-        name: 'Unet.by',
-        fields: ['username', 'password']
-    },
-    {
-        id: 17,
-        name: 'Anitex',
-        fields: ['username', 'password']
-    },
-    {
-        id: 18,
-        name: 'Adsl.by',
-        fields: ['username', 'password']
-    }
-];
+
+var service;
 
 function getService(id)
 {
@@ -109,9 +24,8 @@ function renderService(s)
     for (var i=0; i<s.fields.length; i++)
     {
         var f = s.fields[i];
-        fields += nano('<div class="form-group"><input type="text" class="form-control" id="{name}" placeholder="{name}"></div>', {name:f});
+        fields += nano('<div class="form-group"><input type="text" class="form-control" name="{name}" placeholder="{name}"></div>', {name:f});
     }
-
 
     $('form [rel="fields"]').html(fields);
     $('#idPanelService').show();
@@ -130,7 +44,40 @@ $('#idServices').append(opts);
 $('#idBtnSelect').click(function()
 {
     var id = $('#idServices').val();
-    var s = getService(id);
-    console.log('selected', id, s);
-    renderService(s);
+    service = getService(id);
+    log('selected', id, service);
+    renderService(service);
 });
+
+$('form').submit(function(e)
+{
+    e.preventDefault();
+    var form = $('form').serializeArray();
+    var info = {};
+    $('form input[type="text"]').each(function()
+    {
+        info[this.name] = this.value;
+    });
+    log('will check service', service.id, service.name, 'with', info);
+
+    var bc = new BalanceChecker(service.id, info);
+    bc.check();
+});
+
+
+//test
+service = getService(1);
+var info = {username:'foo', password:'bar'};
+var rm = new RequestMediator();
+//rm.doGet('http://www.mts.by');
+//rm.doGet('https://ihelper.mts.by/selfcare/');
+//rm.doGet('http://onliner.by');
+rm.doGet('http://tut.by');
+
+//rm.doPost('http://apc/extranet/login/', {action:'login', login:'123123', password:'123'});
+
+//rm.doGet('https://ui.bn.by/index.php');
+//setTimeout(function(){
+  //  rm.doPost('https://ui.bn.by/index.php?mode=login', {login:'123123', passwd:'123123'});
+//}, 10000);
+
