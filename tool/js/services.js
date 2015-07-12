@@ -3,12 +3,14 @@ var services = [
     {
         id: 1,
         name: 'МТС',
-        fields: ['username', 'password']
+        fields: ['username', 'password'],
+        processor: 'ServiceMts'
     },
     {
         id: 2,
         name: 'Деловая сеть',
-        fields: ['username', 'password']
+        fields: ['username', 'password'],
+        processor: 'ServiceBusinessNetwork'
     },
     {
         id: 3,

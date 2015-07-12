@@ -49,35 +49,41 @@ $('#idBtnSelect').click(function()
     renderService(service);
 });
 
+//bind submit
 $('form').submit(function(e)
 {
     e.preventDefault();
     var form = $('form').serializeArray();
-    var info = {};
+    var data = {};
     $('form input[type="text"]').each(function()
     {
-        info[this.name] = this.value;
+        data[this.name] = this.value;
     });
-    log('will check service', service.id, service.name, 'with', info);
+    //service.data = data;
+    log('will check service', service.id, service.name, data);
 
-    var bc = new BalanceChecker(service.id, info);
-    bc.check();
+    /*
+    var bc = new BalanceChecker(service);
+    bc.check().then(function(result){
+        log('check result', result);
+    });
+    */
+
+    var checkProcessor = executeFunctionByName(service.processor, window, data);
+    checkProcessor.process().then(function(result) {
+        log('check result', result);
+        $('#idResult').text(JSON.stringify(result, undefined, 4));
+    })
 });
 
 
 //test
-service = getService(1);
-var info = {username:'foo', password:'bar'};
-var rm = new RequestMediator();
-//rm.doGet('http://www.mts.by');
-//rm.doGet('https://ihelper.mts.by/selfcare/');
-//rm.doGet('http://onliner.by');
-rm.doGet('http://tut.by');
-
-//rm.doPost('http://apc/extranet/login/', {action:'login', login:'123123', password:'123'});
-
-//rm.doGet('https://ui.bn.by/index.php');
-//setTimeout(function(){
-  //  rm.doPost('https://ui.bn.by/index.php?mode=login', {login:'123123', passwd:'123123'});
-//}, 10000);
-
+/*
+service = getService(2);
+var data = {username: '123', password: '123'};
+var checkProcessor = executeFunctionByName(service.processor, window, data);
+checkProcessor.process().then(function(result) {
+    log('check result', result);
+    $('#idResult').text(JSON.stringify(result, undefined, 4));
+});
+*/
