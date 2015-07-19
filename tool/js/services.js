@@ -15,7 +15,8 @@ var services = [
     {
         id: 3,
         name: 'Велком',
-        fields: ['username', 'password']
+        fields: ['username', 'password'],
+        processor: 'ServiceVelcom'
     },
     {
         id: 4,

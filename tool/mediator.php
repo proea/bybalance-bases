@@ -55,9 +55,11 @@ function prepareCurl($sid)
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0');
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Connection: keep-alive',
+        'Expect:',
         //'Accept-Encoding: gzip, deflate'
         //'Cache-control: max-age=0'
         //'Referer: https://ihelper.mts.by/SelfCare/welcome.aspx'
+        //'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
     ]);
     $cookieFile = getCookieFile($sid);
     //curl_setopt($ch, CURLOPT_COOKIESESSION, true);
@@ -138,7 +140,10 @@ function doClear($sid)
     $cookieFile = getCookieFile($sid);
     if (file_exists($cookieFile)) unlink($cookieFile);
 
-    return new stdClass();
+    //fix
+    file_put_contents($cookieFile, "\r\nmy.velcom.by	FALSE	/	FALSE	0	_ga	GA1.2.757179186.1437326162\r\n");
+
+    return ['code' => 200, 'data' => ''];
 }
 
 function doGet($sid)
@@ -165,12 +170,16 @@ function doPost($sid)
     $fields = !empty($_POST['fields']) ? $_POST['fields'] : null;
     if (!$fields)  throw new Exception('no fields');
 
-    $fields = http_build_query($fields);
+    $multipart = !empty($_POST['multipart']) && $_POST['multipart'] == 1;
+
+    $fields = $multipart ? $fields : http_build_query($fields);
+    //$fields = http_build_query($fields);
 
     $ch = prepareCurl($sid);
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+    //curl_setopt($ch, CURLOPT_REFERER, 'https://my.velcom.by/work.html');
     //curl_setopt($ch, CURLOPT_POSTREDIR, 8);
 
     $data = curl_exec_utf8($ch);

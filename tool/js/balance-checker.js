@@ -113,9 +113,9 @@ function RequestMediator()
     var sid = randomString(32, 'aA#');
     //var sid = 'mPTzvonPth8O1XakvwDUt3U1z0HfQyXV';
 
-    this.clear = function()
+    this.doClear = function()
     {
-        $.post(urlMediator + '?c=clear', {sid: sid}, function(data) {
+        return $.post(urlMediator + '?c=doClear', {sid: sid}, function(data) {
             log(data);
         }, 'json');
     };
@@ -127,9 +127,9 @@ function RequestMediator()
         }, 'json');
     };
 
-    this.doPost = function(url, fields)
+    this.doPost = function(url, fields, multipart)
     {
-        return $.post(urlMediator + '?c=doPost', {sid: sid, url: url, fields: fields}, function(data) {
+        return $.post(urlMediator + '?c=doPost', {sid: sid, url: url, fields: fields, multipart:multipart?1:0}, function(data) {
             log('doPost', data);
         }, 'json');
     };
