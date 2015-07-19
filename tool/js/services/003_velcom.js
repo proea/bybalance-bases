@@ -193,24 +193,13 @@ function ServiceVelcom(data)
     {
         return new Promise(function(resolve, reject) {
 
-            prepare().then(authorize).then(function(html) {
+            prepare()
+                .then(authorize).then(function(html) {
                     extractBasic(html);
                     resolve(result);
                 }).catch(function() {
                     resolve(result);
                 });
-
-            return;
-            prepare().then(function() {
-                authorize().then(function(html) {
-                    extractBasic(html);
-                    resolve(result);
-                }).catch(function() {
-                    resolve(result);
-                });
-            }).catch(function() {
-                resolve(result);
-            });
         });
     }
 
