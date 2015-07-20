@@ -14,7 +14,7 @@ function ServiceVelcom(data)
         log('velcom prepare');
         return new Promise(function(resolve, reject)
         {
-            rm.doClear().done(resolve).fail(reject);
+            rm.doClear().then(resolve, reject);
         });
     }
 
@@ -23,9 +23,11 @@ function ServiceVelcom(data)
         log('velcom step1');
         return new Promise(function(resolve, reject)
         {
-            rm.doGet(url + 'work.html').done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doGet(url + 'work.html')
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
@@ -64,9 +66,11 @@ function ServiceVelcom(data)
                 user_input_3: data.password
             };
             log('step2 fields', fields);
-            rm.doPost(url + 'work.html', fields, true).done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doPost(url + 'work.html', fields, true)
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
@@ -90,7 +94,7 @@ function ServiceVelcom(data)
         return new Promise(function(resolve, reject)
         {
             paramMenuMarker = getParamMenuMarker(html);
-            log('paramSid3', paramMenuMarker);
+            log('paramMenuMarker', paramMenuMarker);
             if (paramMenuMarker == '')
             {
                 result.incorrectLogin = true;
@@ -106,9 +110,11 @@ function ServiceVelcom(data)
                 user_input_1: ''
             };
             log('step3 fields', fields);
-            rm.doPost(url + 'work.html', fields, true).done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doPost(url + 'work.html', fields, true)
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
@@ -117,18 +123,16 @@ function ServiceVelcom(data)
         log('velcom authorize');
         return new Promise(function(resolve, reject)
         {
-            step1().then(function(html) {
-                step2(html).then(function(html) {
-                    step3(html).then(function(html) {
-                        resolve(html);
-                    }).catch(reject);
-                }).catch(reject);
-            }).catch(reject);
+            step1()
+                .then(step2, reject)
+                    .then(step3, reject)
+                        .then(resolve, reject);
         });
     }
 
     function extractBasic(html)
     {
+        log('velcom extractBasic');
         $('#idResponse').val(html);
 
         if (html.indexOf('INFO_Error_caption') > -1)
@@ -137,7 +141,7 @@ function ServiceVelcom(data)
             return;
         }
 
-        var i, regexp, matches, balance;
+        var i, regexp, matches;
         var balanceMarkers = [
             /баланс:<\/td><td class="INFO">([^<]+)/mi,
             /"Начисления\s*абонента\*:<\/td><td class="INFO">([^<]+)/mi,
@@ -152,9 +156,8 @@ function ServiceVelcom(data)
             log(regexp, matches);
             if (matches && matches.length == 2)
             {
-                balance = getIntegerNumber(matches[1]);
                 result.extracted = true;
-                result.balance = balance;
+                result.balance = getIntegerNumber(matches[1]);
                 break;
             }
         }
@@ -191,15 +194,14 @@ function ServiceVelcom(data)
 
     function process()
     {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve)
+        {
+            var last = function() { resolve(result) };
 
             prepare()
-                .then(authorize).then(function(html) {
-                    extractBasic(html);
-                    resolve(result);
-                }).catch(function() {
-                    resolve(result);
-                });
+                .then(authorize, last)
+                    .then(extractBasic, last)
+                        .then(last);
         });
     }
 

@@ -4,18 +4,18 @@ function ServiceBusinessNetwork(data)
 {
     var url = 'https://ui.bn.by/';
     var result = prepareResult();
+    var rm = new RequestMediator();
 
     function authorize()
     {
         log('bn authorize');
         return new Promise(function(resolve, reject)
         {
-            var rm = new RequestMediator();
-            rm.doGet(url + 'index.php').done(function() {
-                rm.doPost(url + 'index.php?mode=login', {login: data.username, passwd: data.password}).done(function(response) {
+            rm.doPost(url + 'index.php?mode=login', {login: data.username, passwd: data.password})
+                .then(function(response) {
                     resolve(response.data);
-                }).fail(reject);
-            }).fail(reject);
+                })
+                .catch(reject);
         });
     }
 
@@ -44,15 +44,11 @@ function ServiceBusinessNetwork(data)
 
     function process()
     {
-        return new Promise(function(resolve, reject)
+        return new Promise(function(resolve)
         {
-            authorize().then(function(html) {
-                extract(html);
-                resolve(result);
-            }).catch(function() {
-                resolve(result);
-            });
+            var last = function() { resolve(result) };
 
+            authorize().then(extract, last).then(last);
         });
     }
 

@@ -13,9 +13,11 @@ function ServiceMts(data)
         log('mts step1');
         return new Promise(function(resolve, reject)
         {
-            rm.doGet(url + 'logon.aspx').done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doGet(url + 'logon.aspx')
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
@@ -50,9 +52,11 @@ function ServiceMts(data)
                 'ctl00$MainContent$tbPassword': data.password,
                 'ctl00$MainContent$btnEnter': 'Войти'
             };
-            rm.doPost(url + 'logon.aspx', fields).done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doPost(url + 'logon.aspx', fields)
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
@@ -61,16 +65,15 @@ function ServiceMts(data)
         log('mts authorize');
         return new Promise(function(resolve, reject)
         {
-            step1().then(function(html) {
-                step2(html).then(function(html) {
-                    resolve(html);
-                }).catch(reject);
-            }).catch(reject);
+            step1()
+                .then(step2, reject)
+                    .then(resolve, reject);
         });
     }
 
     function extractBasic(html)
     {
+        log('mts extractBasic');
         $('#idResponse').val(html);
 
         var re = /<div class="logon-result-block">([\s\S]+)<\/div>/mi;
@@ -97,18 +100,22 @@ function ServiceMts(data)
         }
     }
 
-    function step3()
+    function readAdditional()
     {
+        log('mts readAdditional');
         return new Promise(function(resolve, reject)
         {
-            rm.doGet(url + 'account-status.aspx').done(function(response) {
-                resolve(response.data);
-            }).fail(reject);
+            rm.doGet(url + 'account-status.aspx')
+                .then(function(response) {
+                    resolve(response.data);
+                })
+                .catch(reject);
         });
     }
 
     function extractAdditional(html)
     {
+        log('mts extractAdditional');
         $('#idResponse').val(html);
 
         //<li>Интернет: 12,9 МБ. до 01.08.2015 00:00:00</li>
@@ -131,21 +138,15 @@ function ServiceMts(data)
 
     function process()
     {
-        return new Promise(function(resolve, reject)
+        return new Promise(function(resolve)
         {
-            authorize().then(function(html) {
-                extractBasic(html);
+            var last = function() { resolve(result) };
 
-                step3().then(function(html) {
-                    extractAdditional(html);
-                    resolve(result);
-                }).catch(function() {
-                    resolve(result);
-                });
-
-            }).catch(function() {
-                resolve(result);
-            });
+            authorize()
+                .then(extractBasic, last)
+                    .then(readAdditional)
+                        .then(extractAdditional, last)
+                            .then(last);
         });
     }
 

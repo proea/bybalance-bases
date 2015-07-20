@@ -115,22 +115,61 @@ function RequestMediator()
 
     this.doClear = function()
     {
-        return $.post(urlMediator + '?c=doClear', {sid: sid}, function(data) {
-            log(data);
-        }, 'json');
+        return new Promise(function(resolve, reject) {
+            jQuery.ajax({
+                url: urlMediator + '?c=doClear',
+                type: 'POST',
+                data: {sid: sid},
+                dataType: 'json'
+            }).then(function (data, textStatus, jqXHR) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                log('doClear', data);
+                resolve(data);
+            }, function (jqXHR, textStatus, errorThrown) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                reject(jqXHR);
+            });
+        });
     };
 
     this.doGet = function(url)
     {
-        return $.post(urlMediator + '?c=doGet', {sid: sid, url: url}, function(data) {
-            log('doGet', data);
-        }, 'json');
+        return new Promise(function(resolve, reject) {
+            jQuery.ajax({
+                url: urlMediator + '?c=doGet',
+                type: 'POST',
+                data: {sid: sid, url: url},
+                dataType: 'json'
+            }).then(function (data, textStatus, jqXHR) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                log('doGet', data);
+                resolve(data);
+            }, function (jqXHR, textStatus, errorThrown) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                reject(jqXHR);
+            });
+        });
     };
 
     this.doPost = function(url, fields, multipart)
     {
-        return $.post(urlMediator + '?c=doPost', {sid: sid, url: url, fields: fields, multipart:multipart?1:0}, function(data) {
-            log('doPost', data);
-        }, 'json');
-    };
+        var data = {sid: sid, url: url, fields: fields};
+        if (multipart) data.multipart = 1;
+
+        return new Promise(function(resolve, reject) {
+            jQuery.ajax({
+                url: urlMediator + '?c=doPost',
+                type: 'POST',
+                data: data,
+                dataType: 'json'
+            }).then(function (data, textStatus, jqXHR) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                log('doPost', data);
+                resolve(data);
+            }, function (jqXHR, textStatus, errorThrown) {
+                delete jqXHR.then; // treat xhr as a non-promise
+                reject(jqXHR);
+            });
+        });
+    }
 }
