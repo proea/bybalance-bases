@@ -87,9 +87,8 @@ function ServiceMts(data)
         var matches = html.match(re);
         if (matches && matches.length == 2)
         {
-            var balance = getIntegerNumber(matches[1], ',');
             result.extracted = true;
-            result.balance = balance;
+            result.balance = getIntegerNumber(matches[1], ',');
         }
 
         re = /<li class="lock-status">([^<]+)<\/li>/mi;

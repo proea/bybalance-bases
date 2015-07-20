@@ -173,14 +173,15 @@ function doPost($sid)
     $multipart = !empty($_POST['multipart']) && $_POST['multipart'] == 1;
 
     $fields = $multipart ? $fields : http_build_query($fields);
-    //$fields = http_build_query($fields);
 
     $ch = prepareCurl($sid);
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-    //curl_setopt($ch, CURLOPT_REFERER, 'https://my.velcom.by/work.html');
     //curl_setopt($ch, CURLOPT_POSTREDIR, 8);
+
+    $referer = !empty($_POST['referer']) ? $_POST['referer'] : null;
+    if (strlen($referer)) curl_setopt($ch, CURLOPT_REFERER, $referer);
 
     $data = curl_exec_utf8($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

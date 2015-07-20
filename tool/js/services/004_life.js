@@ -63,7 +63,7 @@ function ServiceLife(data)
                 form: 'true',
                 next: '/'
             };
-            rm.doPost(url + '/ru/', fields)
+            rm.doPost(url + '/ru/', fields, {referer: url + '/ru/'})
                 .then(function(response) {
                     resolve(response.data);
                 })
@@ -107,14 +107,12 @@ function ServiceLife(data)
             log(regexp, matches);
             if (matches && matches.length == 2)
             {
-                r.extracted = true;
-                r.balance = getIntegerNumber(matches[1]);
+                result.extracted = true;
+                result.balance = getIntegerNumber(matches[1]);
                 break;
             }
         }
     }
-
-
 
     function process()
     {

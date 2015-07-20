@@ -66,7 +66,7 @@ function ServiceVelcom(data)
                 user_input_3: data.password
             };
             log('step2 fields', fields);
-            rm.doPost(url + 'work.html', fields, true)
+            rm.doPost(url + 'work.html', fields, {multipart:1})
                 .then(function(response) {
                     resolve(response.data);
                 })
@@ -110,7 +110,7 @@ function ServiceVelcom(data)
                 user_input_1: ''
             };
             log('step3 fields', fields);
-            rm.doPost(url + 'work.html', fields, true)
+            rm.doPost(url + 'work.html', fields, {multipart:1})
                 .then(function(response) {
                     resolve(response.data);
                 })

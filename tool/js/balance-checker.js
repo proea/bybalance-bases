@@ -151,10 +151,12 @@ function RequestMediator()
         });
     };
 
-    this.doPost = function(url, fields, multipart)
+    this.doPost = function(url, fields, options)
     {
+        options = options || {};
         var data = {sid: sid, url: url, fields: fields};
-        if (multipart) data.multipart = 1;
+        if ('multipart' in options) data.multipart = options.multipart;
+        if ('referer' in options) data.referer = options.referer;
 
         return new Promise(function(resolve, reject) {
             jQuery.ajax({
