@@ -15,9 +15,13 @@ function ServiceMts(data)
         {
             rm.doGet(url + 'logon.aspx')
                 .then(function(response) {
+                    log('mts step1 then');
                     resolve(response.data);
                 })
-                .catch(reject);
+                .catch(function(){
+                    log('mts step1 catch');
+                    reject();
+                });
         });
     }
 

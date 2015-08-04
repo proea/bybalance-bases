@@ -14,7 +14,7 @@ function ServiceVelcom(data)
         log('velcom prepare');
         return new Promise(function(resolve, reject)
         {
-            rm.doClear().then(resolve, reject);
+            rm.doClear(url).then(resolve, reject);
         });
     }
 

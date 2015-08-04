@@ -113,41 +113,71 @@ function RequestMediator()
     var sid = randomString(32, 'aA#');
     //var sid = 'mPTzvonPth8O1XakvwDUt3U1z0HfQyXV';
 
-    this.doClear = function()
+    //if (!('jQuery' in window)) throw 'jQuery required';
+    var useIos = ('bbLog' in window);
+
+    this.doClear = function(url)
     {
         return new Promise(function(resolve, reject) {
-            jQuery.ajax({
-                url: urlMediator + '?c=doClear',
-                type: 'POST',
-                data: {sid: sid},
-                dataType: 'json'
-            }).then(function (data, textStatus, jqXHR) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                log('doClear', data);
-                resolve(data);
-            }, function (jqXHR, textStatus, errorThrown) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                reject(jqXHR);
-            });
+
+            if (useIos)
+            {
+                bbClear(url);
+                resolve();
+            }
+            else
+            {
+                jQuery.ajax({
+                    url: urlMediator + '?c=doClear',
+                    type: 'POST',
+                    data: {sid: sid},
+                    dataType: 'json'
+                }).then(function (data, textStatus, jqXHR) {
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    log('doClear', data);
+                    resolve(data);
+                }, function (jqXHR, textStatus, errorThrown) {
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    reject(jqXHR);
+                });
+            }
+
         });
     };
 
     this.doGet = function(url)
     {
         return new Promise(function(resolve, reject) {
-            jQuery.ajax({
-                url: urlMediator + '?c=doGet',
-                type: 'POST',
-                data: {sid: sid, url: url},
-                dataType: 'json'
-            }).then(function (data, textStatus, jqXHR) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                log('doGet', data);
-                resolve(data);
-            }, function (jqXHR, textStatus, errorThrown) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                reject(jqXHR);
-            });
+            log('doGet start');
+
+            if (useIos)
+            {
+                log('doGet start useIos');
+                bbGet(url, function(success, data) {
+                    //log('doGet start data', data);
+                    if (success) resolve(data);
+                    else reject();
+                    return 123;
+                });
+            }
+            else
+            {
+                jQuery.ajax({
+                    url: urlMediator + '?c=doGet',
+                    type: 'POST',
+                    data: {sid: sid, url: url},
+                    dataType: 'json'
+                }).then(function (data, textStatus, jqXHR) {
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    log('doGet good', data);
+                    resolve(data);
+                }, function (jqXHR, textStatus, errorThrown) {
+                    log('doGet bad');
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    reject(jqXHR);
+                });
+            }
+
         });
     };
 
@@ -159,19 +189,54 @@ function RequestMediator()
         if ('referer' in options) data.referer = options.referer;
 
         return new Promise(function(resolve, reject) {
-            jQuery.ajax({
-                url: urlMediator + '?c=doPost',
-                type: 'POST',
-                data: data,
-                dataType: 'json'
-            }).then(function (data, textStatus, jqXHR) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                log('doPost', data);
-                resolve(data);
-            }, function (jqXHR, textStatus, errorThrown) {
-                delete jqXHR.then; // treat xhr as a non-promise
-                reject(jqXHR);
-            });
+
+            if (useIos)
+            {
+                bbPost(data, function(success, data) {
+                    if (success) resolve(data);
+                    else reject();
+                });
+            }
+            else
+            {
+                jQuery.ajax({
+                    url: urlMediator + '?c=doPost',
+                    type: 'POST',
+                    data: data,
+                    dataType: 'json'
+                }).then(function (data, textStatus, jqXHR) {
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    log('doPost', data);
+                    resolve(data);
+                }, function (jqXHR, textStatus, errorThrown) {
+                    delete jqXHR.then; // treat xhr as a non-promise
+                    reject(jqXHR);
+                });
+            }
         });
     }
+}
+
+
+function checkBalance(serviceId, data)
+{
+    function getService(id)
+    {
+        for (var i=0; i<services.length; i++)
+        {
+            var s = services[i];
+            if (s.id == id) return s;
+        }
+        return null;
+    }
+
+    log('bbCheck', serviceId, data);
+    var service = getService(serviceId);
+    if (!service) throw 'unknown_service';
+
+    var checkProcessor = executeFunctionByName(service.processor, window, data);
+    checkProcessor.process().then(function(result) {
+        log('bbCheck result', result);
+        bbResult(result);
+    });
 }
