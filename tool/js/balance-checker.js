@@ -1,9 +1,8 @@
 
-function log()
-{
-    if ('bbLog' in this) bbLog.apply(this, arguments);
-    else if ('inBrowser' in this) console.log.apply(this, arguments);
-}
+var log = function() {};
+if ('bbLog' in window) log = bbLog.bind(bbLog);
+else if ('inBrowser' in window) log = console.log.bind(console);
+
 
 function prepareResult()
 {
@@ -153,12 +152,16 @@ function RequestMediator()
             if (useIos)
             {
                 log('doGet start useIos');
+
                 bbGet(url, function(success, data) {
-                    //log('doGet start data', data);
-                    if (success) resolve(data);
+                //bbRM.getThen(url, function(success, data) {
+                    log('doGet callback', success);
+                    //log('doGet callback', resolve, reject);
+                    if (success) resolve({code:200, data:data});
                     else reject();
-                    return 123;
                 });
+
+                //bbGet(url, resolve, reject);
             }
             else
             {
@@ -193,6 +196,7 @@ function RequestMediator()
             if (useIos)
             {
                 bbPost(data, function(success, data) {
+                    log('doPost callback', success);
                     if (success) resolve(data);
                     else reject();
                 });
@@ -236,7 +240,9 @@ function checkBalance(serviceId, data)
 
     var checkProcessor = executeFunctionByName(service.processor, window, data);
     checkProcessor.process().then(function(result) {
-        log('bbCheck result', result);
+        log('bbCheck result', JSON.stringify(result));
         bbResult(result);
     });
 }
+
+

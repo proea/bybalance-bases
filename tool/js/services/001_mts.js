@@ -11,6 +11,7 @@ function ServiceMts(data)
     function step1()
     {
         log('mts step1');
+
         return new Promise(function(resolve, reject)
         {
             rm.doGet(url + 'logon.aspx')
