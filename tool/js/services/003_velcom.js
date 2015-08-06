@@ -18,9 +18,9 @@ function ServiceVelcom(data)
         });
     }
 
-    function step1()
+    function auth1()
     {
-        log('velcom step1');
+        log('velcom auth1');
         return new Promise(function(resolve, reject)
         {
             rm.doGet(url + 'work.html')
@@ -43,9 +43,9 @@ function ServiceVelcom(data)
         return '';
     }
 
-    function step2(html)
+    function auth2(html)
     {
-        log('velcom step2');
+        log('velcom auth2');
         return new Promise(function(resolve, reject)
         {
             paramSid3 = getParamSid3(html);
@@ -65,7 +65,7 @@ function ServiceVelcom(data)
                 user_input_2: data.username.substr(2),
                 user_input_3: data.password
             };
-            log('step2 fields', fields);
+            log('auth2 fields', fields);
             rm.doPost(url + 'work.html', fields, {multipart:1})
                 .then(function(response) {
                     resolve(response.data);
@@ -88,9 +88,9 @@ function ServiceVelcom(data)
         return '';
     }
 
-    function step3(html)
+    function auth3(html)
     {
-        log('velcom step3');
+        log('velcom auth3');
         return new Promise(function(resolve, reject)
         {
             paramMenuMarker = getParamMenuMarker(html);
@@ -109,7 +109,7 @@ function ServiceVelcom(data)
                 last_id: '',
                 user_input_1: ''
             };
-            log('step3 fields', fields);
+            log('auth3 fields', fields);
             rm.doPost(url + 'work.html', fields, {multipart:1})
                 .then(function(response) {
                     resolve(response.data);
@@ -123,22 +123,24 @@ function ServiceVelcom(data)
         log('velcom authorize');
         return new Promise(function(resolve, reject)
         {
-            step1()
-                .then(step2, reject)
-                    .then(step3, reject)
-                        .then(resolve, reject);
+            auth1()
+                .then(auth2)
+                    .then(auth3)
+                        .then(resolve)
+            .catch(reject);
         });
     }
 
     function extractBasic(html)
     {
         log('velcom extractBasic');
-        $('#idResponse').val(html);
+        //$('#idResponse').val(html);
 
         if (html.indexOf('INFO_Error_caption') > -1)
         {
             result.incorrectLogin = true;
-            return;
+            //return;
+            throw 'incorrect_login';
         }
 
         var i, regexp, matches;
@@ -199,9 +201,10 @@ function ServiceVelcom(data)
             var last = function() { resolve(result) };
 
             prepare()
-                .then(authorize, last)
-                    .then(extractBasic, last)
-                        .then(last);
+                .then(authorize)
+                    .then(extractBasic)
+                        .then(last)
+            .catch(last);
         });
     }
 

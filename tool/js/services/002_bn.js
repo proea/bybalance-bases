@@ -22,13 +22,14 @@ function ServiceBusinessNetwork(data)
     function extract(html)
     {
         log('bn extract', html);
-        $('#idResponse').val(html);
+        //$('#idResponse').val(html);
 
         var re = /<div class=('alarma'|"alarma")>([^<]+)<\/div>/mi;
         if (html.match(re))
         {
             result.incorrectLogin = true;
-            return;
+            //return;
+            throw 'incorrect_login';
         }
 
         re = /Текущий баланс:<\/td><td>([^<]+)<\/td>/mi;
@@ -48,7 +49,10 @@ function ServiceBusinessNetwork(data)
         {
             var last = function() { resolve(result) };
 
-            authorize().then(extract, last).then(last);
+            authorize()
+                .then(extract)
+                    .then(last)
+            .catch(last);
         });
     }
 

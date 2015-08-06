@@ -7,9 +7,9 @@ function ServiceLife(data)
     var paramMiddlewareToken = '';
     var rm = new RequestMediator();
 
-    function step1()
+    function auth1()
     {
-        log('life step1');
+        log('life auth1');
         return new Promise(function(resolve, reject)
         {
             rm.doGet(url + '/ru/')
@@ -42,9 +42,9 @@ function ServiceLife(data)
         return '';
     }
 
-    function step2(html)
+    function auth2(html)
     {
-        log('life step2');
+        log('life auth2');
         return new Promise(function(resolve, reject)
         {
             paramMiddlewareToken = getParamMiddlewareToken(html);
@@ -76,22 +76,20 @@ function ServiceLife(data)
         log('life authorize');
         return new Promise(function(resolve, reject)
         {
-            step1()
-                .then(step2, reject)
-                    .then(resolve, reject);
+            auth1().then(auth2).then(resolve).catch(reject);
         });
     }
 
     function extractBasic(html)
     {
         log('life extractBasic');
-        $('#idResponse').val(html);
-
+        //$('#idResponse').val(html);
 
         if (html.indexOf('class="log-out"') == -1)
         {
             result.incorrectLogin = true;
-            return;
+            //return;
+            throw 'incorrect_login';
         }
 
         var i, regexp, matches;
@@ -121,8 +119,9 @@ function ServiceLife(data)
             var last = function() { resolve(result) };
 
             authorize()
-                .then(extractBasic, last)
-                    .then(last);
+                .then(extractBasic)
+                    .then(last)
+            .catch(last);
         });
     }
 

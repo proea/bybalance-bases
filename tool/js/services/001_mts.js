@@ -8,19 +8,18 @@ function ServiceMts(data)
     var rm = new RequestMediator();
     var bonuses = [];
 
-    function step1()
+    function auth1()
     {
-        log('mts step1');
-
+        log('mts auth1');
         return new Promise(function(resolve, reject)
         {
             rm.doGet(url + 'logon.aspx')
                 .then(function(response) {
-                    log('mts step1 then');
+                    log('mts auth1 then');
                     resolve(response.data);
                 })
                 .catch(function(){
-                    log('mts step1 catch');
+                    log('mts auth1 catch');
                     reject();
                 });
         });
@@ -38,9 +37,9 @@ function ServiceMts(data)
         return '';
     }
 
-    function step2(html)
+    function auth2(html)
     {
-        log('mts step2');
+        log('mts auth2');
         return new Promise(function(resolve, reject)
         {
             paramViewState = getParamViewState(html);
@@ -70,22 +69,21 @@ function ServiceMts(data)
         log('mts authorize');
         return new Promise(function(resolve, reject)
         {
-            step1()
-                .then(step2, reject)
-                    .then(resolve, reject);
+            auth1().then(auth2).then(resolve).catch(reject);
         });
     }
 
     function extractBasic(html)
     {
         log('mts extractBasic');
-        $('#idResponse').val(html);
+        //$('#idResponse').val(html);
 
         var re = /<div class="logon-result-block">([\s\S]+)<\/div>/mi;
         if (html.match(re))
         {
             result.incorrectLogin = true;
-            return;
+            throw 'incorrect_login';
+            //return;
         }
 
         re = /<span id="customer-info-balance"><strong>([^<]+)<\/strong>/mi;
@@ -120,7 +118,7 @@ function ServiceMts(data)
     function extractAdditional(html)
     {
         log('mts extractAdditional');
-        $('#idResponse').val(html);
+        //$('#idResponse').val(html);
 
         //<li>Интернет: 12,9 МБ. до 01.08.2015 00:00:00</li>
         var re = /<li>Интернет:([^<]+)<\/li>/mi;
@@ -147,10 +145,11 @@ function ServiceMts(data)
             var last = function() { resolve(result) };
 
             authorize()
-                .then(extractBasic, last)
+                .then(extractBasic)
                     .then(readAdditional)
-                        .then(extractAdditional, last)
-                            .then(last);
+                        .then(extractAdditional)
+                            .then(last)
+            .catch(last);
         });
     }
 

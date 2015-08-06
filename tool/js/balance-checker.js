@@ -148,20 +148,13 @@ function RequestMediator()
     {
         return new Promise(function(resolve, reject) {
             log('doGet start');
-
             if (useIos)
             {
-                log('doGet start useIos');
-
                 bbGet(url, function(success, data) {
                 //bbRM.getThen(url, function(success, data) {
-                    log('doGet callback', success);
-                    //log('doGet callback', resolve, reject);
                     if (success) resolve({code:200, data:data});
                     else reject();
                 });
-
-                //bbGet(url, resolve, reject);
             }
             else
             {
@@ -192,12 +185,12 @@ function RequestMediator()
         if ('referer' in options) data.referer = options.referer;
 
         return new Promise(function(resolve, reject) {
-
+            log('doPost start');
             if (useIos)
             {
                 bbPost(data, function(success, data) {
                     log('doPost callback', success);
-                    if (success) resolve(data);
+                    if (success) resolve({code:200, data:data});
                     else reject();
                 });
             }
