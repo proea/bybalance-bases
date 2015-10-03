@@ -228,7 +228,7 @@ function extractVelcom(html)
     {
         regexp = balanceMarkers[i];
         matches = html.match(regexp);
-        log(regexp, matches);
+        //log(regexp, matches);
         if (matches && matches.length == 2)
         {
             balance = getIntegerNumber(matches[1]);
@@ -251,7 +251,7 @@ function extractVelcom(html)
         {
             regexp = bonusesMarkers[i];
             matches = html.match(regexp);
-            log(regexp, matches);
+            //log(regexp, matches);
             if (matches && matches.length == 2)
             {
                 bonusLine = String(matches[1]).trim();
@@ -285,7 +285,7 @@ function extractLife(html)
     {
         regexp = balanceMarkers[i];
         matches = html.match(regexp);
-        log(regexp, matches);
+        //log(regexp, matches);
         if (matches && matches.length == 2)
         {
             balance = getIntegerNumber(matches[1]);
@@ -577,12 +577,58 @@ function extractNetberry(html)
     return r;
 }
 
-function extractCosmosTv(text)
+function extractCosmosTv(html)
 {
     var r = prepareResult();
+    var line = [];
 
-    //TODO
-    //broken, need user with acc to update
+    //Контракт
+    // <form id="frm_contracts"
+    re = /<form\s*id="frm_contracts"[^>]*>([\s\S]*?)<\/form>/mi;
+    matches = html.match(re);
+    //log('matches', matches);
+    if (matches && matches.length == 2)
+    {
+        var formHtml = matches[1];
+        //log('formHtml', formHtml);
+        //<option value="101909390" selected class=""> TO_7518 </option>
+        re = /<option\s*value="[^\"]*"\s*selected[^>]*>([^<]+)<\/option>/mi;
+        matches = formHtml.match(re);
+        //log('matches', matches);
+        if (matches && matches.length == 2)
+        {
+            var contract = String(matches[1]).trim();
+            if (contract.length > 0)
+            {
+                line.push('к:' + contract);
+            }
+        }
+    }
+
+    //Баланс: <b class="positively"> 0,00 </b>
+    var re = /Баланс:\s*<b[^>]*>([^<]+)<\/b>/mi;
+    var matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var balance = getIntegerNumber(String(matches[1]).trim(), ',');
+        r.extracted = true;
+        r.balance = balance;
+        line.push(r.balance);
+    }
+
+    //Статус: <b class="positively">Действующий </b>
+    re = /Статус:\s*<b[^>]*>([^<]+)<\/b>/mi;
+    matches = html.match(re);
+    if (matches && matches.length == 2)
+    {
+        var status = String(matches[1]).trim();
+        if (status.length > 0)
+        {
+            line.push('c:' + status.toLowerCase());
+        }
+    }
+
+    if (line.length > 0) r.bonuses = line.join(' - ');
 
     return r;
 }
@@ -604,27 +650,27 @@ function extractInfolan(text)
     var nodeResponse = doc.getElementsByTagName('Response')[0];
     var i, node, nodeBalance, nodeName, nodeExpiry;
     var bonuses = [];
-    log(nodeResponse);
-    log('length', nodeResponse.childNodes.length);
+    //log(nodeResponse);
+    //log('length', nodeResponse.childNodes.length);
     for (i=0; i<nodeResponse.childNodes.length; i++)
     {
         node = nodeResponse.childNodes[i];
-        log('node', node.nodeName);
+        //log('node', node.nodeName);
         if (node.nodeName == 'Main')
         {
             nodeBalance = node.getElementsByTagName('Balance')[0];
-            log('nodeBalance', nodeBalance);
+            //log('nodeBalance', nodeBalance);
             if (nodeBalance)
             {
                 r.extracted = true;
-                log('balance', nodeBalance.textContent);
+                //log('balance', nodeBalance.textContent);
                 r.balance = getIntegerNumber(nodeBalance.textContent);
 
                 var nodeDL = node.getElementsByTagName('DaysLeft')[0];
                 if (nodeDL)
                 {
                     var dl = parseInt(nodeDL.textContent);
-                    log('daysLeft', dl);
+                    //log('daysLeft', dl);
                     bonuses.push('Осталось ' + dl + ' ' + getNumEnding(dl, ['день', 'дня', 'дней']));
                 }
             }
@@ -649,7 +695,7 @@ function extractInfolan(text)
     }
 
     if (bonuses.length > 0) r.bonuses = bonuses.join('\n');
-    log('bonuses', bonuses);
+    //log('bonuses', bonuses);
 
     return r;
 }
@@ -807,7 +853,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1502.0'
+    version: '1510.0'
 };
 
 //end
