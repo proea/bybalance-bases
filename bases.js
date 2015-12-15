@@ -295,6 +295,34 @@ function extractLife(html)
         }
     }
 
+    //план для юр. лиц
+    matches = html.match(/Использованный корпоративный лимит\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi);
+    if (matches && matches.length == 2)
+    {
+        balance = getIntegerNumber(matches[1]);
+        r.extracted = true;
+        r.balance = balance;
+
+        var bonusLine, bonuses = [];
+        var bonusesMarkers = [
+            /(Корпоративный лимит)\s*<\/td>\s*<td[^>]*>([^<]+)/mi,
+            /(Использованный корпоративный лимит)\s*<\/td>\s*<td[^>]*>([^<]+)/mi
+        ];
+
+        for (i=0; i<bonusesMarkers.length; i++)
+        {
+            regexp = bonusesMarkers[i];
+            matches = html.match(regexp);
+            if (matches && matches.length == 3)
+            {
+                bonusLine = String(matches[1]).trim() + ': ' + String(matches[2]).trim();
+                if (bonusLine.length > 1) bonuses.push(bonusLine);
+            }
+        }
+
+        if (bonuses.length > 0) r.bonuses = bonuses.join(' ');
+    }
+
     return r;
 }
 
@@ -853,7 +881,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1510.0'
+    version: '1510.12'
 };
 
 //end
