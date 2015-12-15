@@ -881,7 +881,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1510.12'
+    version: '1512.0'
 };
 
 //end
