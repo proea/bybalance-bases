@@ -278,7 +278,8 @@ function extractLife(html)
     var i, regexp, matches, balance;
     var balanceMarkers = [
         /Основной баланс\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi,
-        /Основной счет\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi
+        /Основной счет\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi,
+        /Основной счёт\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi
     ];
 
     for (i=0; i<balanceMarkers.length; i++)
@@ -294,6 +295,8 @@ function extractLife(html)
             break;
         }
     }
+
+    if (r.extracted) return r;
 
     //план для юр. лиц
     matches = html.match(/Использованный корпоративный лимит\s*<\/td>\s*<td[^>]*>([^<]+)руб/mi);
@@ -881,7 +884,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1512.0'
+    version: '1512.1'
 };
 
 //end
