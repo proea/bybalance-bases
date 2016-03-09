@@ -574,7 +574,7 @@ function extractNetberry(html)
         return r;
     }
 
-    var re = /Остаток средств<\/th>\s*<td>([^<]+)/mi;
+    var re = /Остаток средств<\/td>\s*<td>([^<]+)/mi;
     var matches = html.match(re);
     if (matches && matches.length == 2)
     {
@@ -584,7 +584,7 @@ function extractNetberry(html)
     }
     else
     {
-        re = /Исходящий остаток на конец месяца<\/th>\s*<td>([^<]+)/mi;
+        re = /Исходящий остаток на конец месяца<\/td>\s*<td>([^<]+)/mi;
         matches = html.match(re);
         if (matches && matches.length == 2)
         {
@@ -594,7 +594,7 @@ function extractNetberry(html)
         }
         else
         {
-            re = /Входящий остаток на начало месяца<\/th>\s*<td>([^<]+)/mi;
+            re = /Входящий остаток на начало месяца<\/td>\s*<td>([^<]+)/mi;
             matches = html.match(re);
             if (matches && matches.length == 2)
             {
@@ -884,7 +884,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1512.1'
+    version: '1603.0'
 };
 
 //end
