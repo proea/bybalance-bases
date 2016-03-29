@@ -5,8 +5,23 @@ function log()
     else if ('useRegularConsole' in this) console.log.apply(this, arguments);
 }
 
+function getIntegerNumberWithoutPoints(str, separator)
+{
+    separator = separator || '.';
+
+    var pos = str.indexOf(separator);
+    if (pos > 0) {
+        str = str.substring(0, pos);
+    }
+    str = str.replace(/[^0-9\-]/g, '');
+
+    return parseInt(str);
+}
+
 function getIntegerNumber(str, separator)
 {
+    return getIntegerNumberWithoutPoints(str, separator);
+
     separator = separator || '.';
     str = str.replace(/руб./g, '');
 
@@ -884,7 +899,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1603.0'
+    version: '1603.0.2'
 };
 
 //end
