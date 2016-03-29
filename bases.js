@@ -8,12 +8,17 @@ function log()
 function getIntegerNumberWithoutPoints(str, separator)
 {
     separator = separator || '.';
+    str = str.replace(/руб./g, '');
 
     var pos = str.indexOf(separator);
+    //log('pos', pos);
     if (pos > 0) {
+        //log('str before: ', str);
         str = str.substring(0, pos);
+        //log('str after: ', str);
     }
     str = str.replace(/[^0-9\-]/g, '');
+    //log('str cleaned: ', str);
 
     return parseInt(str);
 }
@@ -899,7 +904,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1603.0.2'
+    version: '1603.0.5'
 };
 
 //end
