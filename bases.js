@@ -7,26 +7,20 @@ function log()
 
 function getIntegerNumberWithoutPoints(str, separator)
 {
-    separator = separator || '.';
+    // for netberry
     str = str.replace(/руб./g, '');
+    var pos = -1;
 
-    var pos = str.indexOf(separator);
-    //log('pos', pos);
-    if (pos > 0) {
-        //log('str before: ', str);
-        str = str.substring(0, pos);
-        //log('str after: ', str);
-    }
+    pos = str.indexOf('.');
+    if (pos == -1) pos = str.indexOf(',');
+    if (pos > 0) str = str.substring(0, pos);
+
     str = str.replace(/[^0-9\-]/g, '');
-    //log('str cleaned: ', str);
-
     return parseInt(str);
 }
 
 function getIntegerNumber(str, separator)
 {
-    return getIntegerNumberWithoutPoints(str, separator);
-
     separator = separator || '.';
     str = str.replace(/руб./g, '');
 
@@ -598,7 +592,7 @@ function extractNetberry(html)
     var matches = html.match(re);
     if (matches && matches.length == 2)
     {
-        var balance = getIntegerNumber(matches[1]);
+        var balance = getIntegerNumberWithoutPoints(matches[1]);
         r.extracted = true;
         r.balance = balance;
     }
@@ -608,7 +602,7 @@ function extractNetberry(html)
         matches = html.match(re);
         if (matches && matches.length == 2)
         {
-            var balance = getIntegerNumber(matches[1]);
+            var balance = getIntegerNumberWithoutPoints(matches[1]);
             r.extracted = true;
             r.balance = balance;
         }
@@ -618,7 +612,7 @@ function extractNetberry(html)
             matches = html.match(re);
             if (matches && matches.length == 2)
             {
-                var balance = getIntegerNumber(matches[1]);
+                var balance = getIntegerNumberWithoutPoints(matches[1]);
                 r.extracted = true;
                 r.balance = balance;
             }
@@ -904,7 +898,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1603.0.5'
+    version: '1604.0'
 };
 
 //end
