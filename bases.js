@@ -490,6 +490,22 @@ function extractByfly(html)
         var nodeTree = doc.getElementById('tree');
         if (!nodeTree) return r;
         //log('nodeTree', nodeTree);
+        //log('nodeTree.childNodes', nodeTree.childNodes);
+
+        //check if first level is ul again
+        var firstUL = false;
+        for (var i=0; i<nodeTree.childNodes.length; i++)
+        {
+            var nodeTreeChild = nodeTree.childNodes[i];
+            if (nodeTreeChild.nodeName.toUpperCase() == 'UL')
+            {
+                firstUL = true;
+                nodeTree = nodeTreeChild;
+                break;
+            }
+        }
+
+        //log('nodeTree', nodeTree);
 
         for (var i=0; i<nodeTree.childNodes.length; i++)
         {
@@ -516,7 +532,17 @@ function extractByfly(html)
 
                                 if (block.indexOf(username) == -1) continue;
 
-                                var matches = block.match(re);
+                                //log('username found', nodeLi2.innerHTML);
+
+                                if (firstUL)
+                                {
+                                    var matches = nodeLi.innerHTML.match(re);
+                                }
+                                else
+                                {
+                                    var matches = block.match(re);
+                                }
+
                                 if (matches && matches.length == 2)
                                 {
                                     var balance = getIntegerNumber(matches[1]);
@@ -898,7 +924,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1604.0'
+    version: '1605.0'
 };
 
 //end
