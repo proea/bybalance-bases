@@ -5,7 +5,7 @@ function log()
     else if ('useRegularConsole' in this) console.log.apply(this, arguments);
 }
 
-function getIntegerNumberWithoutPoints(str, separator)
+function getIntegerNumberWithoutPoints(str)
 {
     // for netberry
     str = str.replace(/руб./g, '');
@@ -21,6 +21,7 @@ function getIntegerNumberWithoutPoints(str, separator)
 
 function getIntegerNumber(str, separator)
 {
+    return getDecimalNumber(str, separator);
     separator = separator || '.';
     str = str.replace(/руб./g, '');
 
@@ -924,7 +925,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1605.0'
+    version: '1607.0'
 };
 
 //end
