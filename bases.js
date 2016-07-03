@@ -21,7 +21,8 @@ function getIntegerNumberWithoutPoints(str)
 
 function getIntegerNumber(str, separator)
 {
-    return getDecimalNumber(str, separator);
+    return getDecimalNumber2(str, separator);
+
     separator = separator || '.';
     str = str.replace(/руб./g, '');
 
@@ -51,6 +52,24 @@ function getDecimalNumber(str, separator)
     {
         str = str.replace(/[^0-9,\-]/g, '');
         str = str.replace(',', '.');
+    }
+
+    return parseFloat(str).toFixed(2);
+}
+
+function getDecimalNumber2(str)
+{
+    str = str.replace(/руб./g, '');
+
+    var pos1 = str.indexOf('.');
+    var pos2 = str.indexOf(',');
+    if (pos1 > 0) {
+        str = str.replace(/[^0-9.\-]/g, '');
+    } else if (pos2 > 0) {
+        str = str.replace(/[^0-9,\-]/g, '');
+        str = str.replace(',', '.');
+    } else {
+        str = str.replace(/[^0-9\-]/g, '');
     }
 
     return parseFloat(str).toFixed(2);
@@ -925,7 +944,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1607.0'
+    version: '1607.1'
 };
 
 //end
