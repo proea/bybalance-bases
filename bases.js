@@ -59,6 +59,16 @@ function getDecimalNumber(str, separator)
 
 function getDecimalNumber2(str)
 {
+    var re = /([\d]+)\s+руб.\s+([\d]+)\sкоп./mi;
+    var matches = str.match(re);
+    if (matches && matches.length == 3) {
+        var intgr = parseFloat(matches[1]);
+        var fract = parseFloat('0.' + matches[2]);
+        var decim = intgr + fract;
+        //log('intgr', intgr, 'fract', fract, 'decim', decim);
+        return decim.toFixed(2);
+    }
+
     str = str.replace(/руб./g, '');
 
     var pos1 = str.indexOf('.');
@@ -274,7 +284,7 @@ function extractVelcom(html)
 
     if (r.extracted)
     {
-        log('search for bonuses');
+        //log('search for bonuses');
         var bonusLine, bonuses = [];
         var bonusesMarkers = [
             /<td[^>]*id="DISCOUNT"[^>]*><span>\s*([^<]+)/mi,
