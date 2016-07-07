@@ -59,12 +59,15 @@ function getDecimalNumber(str, separator)
 
 function getDecimalNumber2(str)
 {
-    var re = /([\d]+)\s+руб.\s+([\d]+)\sкоп./mi;
+    var re = /-*\s*([\d]+)\s+руб.\s+([\d]+)\sкоп./mi;
     var matches = str.match(re);
+    //log('matches', matches);
     if (matches && matches.length == 3) {
         var intgr = parseFloat(matches[1]);
         var fract = parseFloat('0.' + matches[2]);
         var decim = intgr + fract;
+        var negat = matches[0].indexOf('-') >= 0;
+        if (negat) decim = -decim;
         //log('intgr', intgr, 'fract', fract, 'decim', decim);
         return decim.toFixed(2);
     }
@@ -954,7 +957,7 @@ function extractAdslBy(html)
 
 var bb = {
     title: 'Базы приложения',
-    version: '1607.2'
+    version: '1607.3'
 };
 
 //end
